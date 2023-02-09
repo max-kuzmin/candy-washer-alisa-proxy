@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "lib": ["ESNext", "dom"],
+        "target": "ESNext",
+        "module": "commonjs",
+        "outDir": "dist",
+        "resolveJsonModule": true
+    },
+    "include": ["src/**/*", "./package.json"],
+    "exclude": ["node_modules", "jsons"]
+}

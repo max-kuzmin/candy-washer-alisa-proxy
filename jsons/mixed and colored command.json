@@ -1,0 +1,156 @@
+start
+
+{
+    "command": {
+        "id": "32eb4d7b-2517-4153-8cda-4e40c1069c69",
+        "body": "Write=1&StSt=1&DelVl=0&PrNm=13&PrCode=135&PrStr=Mixed and Coloured 59'&TmpTgt=30&SLevTgt=2&SpdTgt=8&OptMsk1=0&OptMsk2=0&Lang=1&Stm=0&Dry=3&ED=0&RecipeId=0&StartCheckUp=0&DispTestOn=1",
+        "response": null,
+        "parsed_parameters": {
+            "Write": "1",
+            "StSt": "1",
+            "DelVl": "0",
+            "PrNm": "13",
+            "PrCode": "135",
+            "PrStr": "Mixed and Coloured 59'",
+            "TmpTgt": "30",
+            "SLevTgt": "2",
+            "SpdTgt": "8",
+            "OptMsk1": "0",
+            "OptMsk2": "0",
+            "Lang": "1",
+            "Stm": "0",
+            "Dry": "3",
+            "ED": "0",
+            "RecipeId": "0",
+            "StartCheckUp": "0",
+            "DispTestOn": "1"
+        },
+        "program": null
+    }
+}
+
+pause
+
+
+{
+    "command": {
+        "id": "2d7b1a7e-687a-4280-8bf5-a0c5053dce84",
+        "body": "encrypted=0&Pa=1",
+        "response": null,
+        "parsed_parameters": {
+            "encrypted": "0",
+            "Pa": "1"
+        },
+        "program": null
+    }
+}
+
+continue
+
+
+{
+    "command": {
+        "id": "df6bef2a-b132-4f10-8967-80eef983d9df",
+        "body": "encrypted=0&Pa=0",
+        "response": null,
+        "parsed_parameters": {
+            "encrypted": "0",
+            "Pa": "0"
+        },
+        "program": null
+    }
+}
+
+
+stop
+
+{
+    "command": {
+        "id": "9b6d6718-2c9b-4164-b0dd-3e03af5c3934",
+        "body": "Write=1&StSt=0&PrNm=13",
+        "response": null,
+        "parsed_parameters": {
+            "Write": "1",
+            "StSt": "0",
+            "PrNm": "13"
+        },
+        "program": null
+    }
+}
+
+
+no dry (eco)
+
+{
+    "command": {
+        "id": "fa0b10db-bc20-4519-a34d-8b667eb46d56",
+        "body": "Write=1&StSt=1&DelVl=0&PrNm=13&PrCode=135&PrStr=Mixed and Coloured 59'&TmpTgt=30&SLevTgt=2&SpdTgt=8&OptMsk1=0&OptMsk2=0&Lang=1&Stm=5&Dry=0&ED=0&RecipeId=0&StartCheckUp=0&DispTestOn=1",
+        "response": null,
+        "parsed_parameters": {
+            "Write": "1",
+            "StSt": "1",
+            "DelVl": "0",
+            "PrNm": "13",
+            "PrCode": "135",
+            "PrStr": "Mixed and Coloured 59'",
+            "TmpTgt": "30",
+            "SLevTgt": "2",
+            "SpdTgt": "8",
+            "OptMsk1": "0",
+            "OptMsk2": "0",
+            "Lang": "1",
+            "Stm": "5",
+            "Dry": "0",
+            "ED": "0",
+            "RecipeId": "0",
+            "StartCheckUp": "0",
+            "DispTestOn": "1"
+        },
+        "program": null
+    }
+}
+
+fast
+
+{
+    "appliance_id": "9734ba8d-fade-4e24-9a8a-e56b63cc3166",
+    "body": "Write=1
+    &StSt=1
+    &DelVl=0
+    &PrNm=12
+    &PrCode=71
+    &PrStr=Saving 30'
+    &TmpTgt=30
+    &SLevTgt=2
+    &SpdTgt=10
+    &OptMsk1=0
+    &OptMsk2=0
+    &Lang=1
+    &Stm=0
+    &Dry=0
+    &ED=0
+    &RecipeId=0
+    &StartCheckUp=0
+    &DispTestOn=1"
+}
+
+
+{
+    "appliance_id": "9734ba8d-fade-4e24-9a8a-e56b63cc3166",
+    "body": "Write=1
+    &StSt=1
+    &DelVl=0
+    &PrNm=9
+    &PrCode=77
+    &PrStr=Rapid 60' - Delicates
+    &SLevTgt=0
+    &OptMsk1=0
+    &OptMsk2=0
+    &Lang=1
+    &Stm=0
+    &Dry=7
+    &ED=0
+    &RecipeId=D_143
+    &StartCheckUp=0
+    &DispTestOn=1"
+}
