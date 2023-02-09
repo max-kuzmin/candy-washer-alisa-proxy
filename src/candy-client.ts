@@ -118,6 +118,9 @@ export class CandyClient {
             }
         };
 
+        const twoMinutesBefore = new Date();
+        twoMinutesBefore.setMinutes(twoMinutesBefore.getMinutes() - 2);
+
         for (const alisaDevice of alisaReq.devices) {
             const candyDevice = candyDevices.find(e => e.appliance.id === alisaDevice.id)?.appliance;
 
@@ -142,7 +145,8 @@ export class CandyClient {
                         type: "devices.capabilities.on_off",
                         state: {
                             instance: "on",
-                            value: true
+                            value: candyDevice.current_status_parameters.WiFiStatus === "1"
+                                && new Date(candyDevice.current_status_update) > twoMinutesBefore
                         }
                     }
                 ],
@@ -157,7 +161,6 @@ export class CandyClient {
 
     async sendState(alisaReq: SendStateReqAlisa): Promise<SendStateResAlisa | undefined> {
         const alisaDevice = alisaReq.payload.devices[0];
-
         const capability = alisaDevice.capabilities[0];
 
         let command: StartCommandReqCandyBody | PauseResumeCommandReqCandyBody | StopCommandReqCandyBody;
@@ -182,9 +185,14 @@ export class CandyClient {
             body: Object.entries(command).map(e => e[0] + "=" + e[1]).join("&"),
         };
 
-        const response = await fetch(this.host + this.commandUrl,
-            { method: 'POST', headers: this.headersForCommand, body: JSON.stringify(commandReqCandy) });
-        const commandResult = await response.json();
+        let hasError = false;
+        try {
+            const response = await fetch(this.host + this.commandUrl,
+                { method: 'POST', headers: this.headersForCommand, body: JSON.stringify(commandReqCandy) });
+            await response.json();
+        } catch {
+            hasError = true;
+        }
 
         const result: SendStateResAlisa = {
             request_id: Date.now().toString(),
@@ -197,7 +205,7 @@ export class CandyClient {
                             state: {
                                 instance: capability.state.instance,
                                 action_result: {
-                                    status: "DONE"
+                                    status: hasError ? "ERROR" : "DONE"
                                 }
                             }
                         }

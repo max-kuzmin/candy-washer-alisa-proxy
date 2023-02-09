@@ -1,5 +1,6 @@
 export interface CurrentStatusParameters {
-    WiFiStatus: string;
+    /** Признак подключения машины к управлению через приложение */
+    WiFiStatus: "0" | "1";
     Err: string;
     /** Состояние 1 - остановлена, 2 - в процессе, 3 - пауза */
     MachMd: "1" | "2" | "3";
@@ -98,6 +99,7 @@ export interface Appliance {
     appliance_settings: any;
     created_at: Date;
     programs?: Program[];
+    /** Время последнего ответа от машины, если старее 2 минут, то машина выключена  */
     current_status_update: Date;
     receipt: string;
     appliance_type: string;
