@@ -16,7 +16,7 @@ export class CandyClient {
     private readonly headers: object;
     private readonly headersForCommand: object;
 
-    constructor(bearer: string, private readonly userId: string) {
+    constructor(bearer: string,) {
         this.headers = {
             "Salesforce-Auth": 1,
             "Authorization": bearer
@@ -31,12 +31,11 @@ export class CandyClient {
     async getDevices(): Promise<DevicesResAlisa> {
         const response = await fetch(this.host + this.getDevicesUrl, { headers: this.headers });
         const devices: DeviceResCandy[] = await response.json();
-        //console.log(JSON.stringify(devices));
 
         const result: DevicesResAlisa = {
             request_id: Date.now().toString(),
             payload: {
-                user_id: this.userId,
+                user_id: "yandex",
                 devices: []
             }
         };
@@ -183,13 +182,9 @@ export class CandyClient {
             body: Object.entries(command).map(e => e[0] + "=" + e[1]).join("&"),
         };
 
-        //console.log(JSON.stringify(commandReqCandy));
-
         const response = await fetch(this.host + this.commandUrl,
             { method: 'POST', headers: this.headersForCommand, body: JSON.stringify(commandReqCandy) });
         const commandResult = await response.json();
-
-        //console.log(JSON.stringify(commandResult));
 
         const result: SendStateResAlisa = {
             request_id: Date.now().toString(),

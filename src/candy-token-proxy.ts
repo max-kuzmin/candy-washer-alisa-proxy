@@ -4,8 +4,6 @@ import { HandlerInput, HandlerResult } from "./models/alisa/handler-models";
 import { splitXFormBody } from "./helpers/split-body";
 
 export async function handler(event: HandlerInput): Promise<HandlerResult> {
-    //console.log(JSON.stringify(event));
-
     if (!event.body)
         return {
             statusCode: 400
@@ -28,8 +26,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     const tokenBody = await tokenResponse.text();
     const tokenBodyJson = JSON.parse(tokenBody);
     const token = tokenBodyJson.id_token;
-    //console.log(token);
-
+    
     return {
         statusCode: 200,
         body: {

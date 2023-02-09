@@ -8,14 +8,12 @@ export function fetchXForm(details, url) {
         formBody.push(encodedKey + "=" + encodedValue);
     }
     const formBodyString = formBody.join("&");
-    //console.log(formBody);
     
     return fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: formBodyString,
-      //redirect: 'manual'
+      body: formBodyString
     })
 }

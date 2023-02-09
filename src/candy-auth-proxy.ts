@@ -5,8 +5,6 @@ import { HandlerInput, HandlerResult } from "./models/alisa/handler-models";
 import { splitXFormBody } from "./helpers/split-body";
 
 export async function handler(event: HandlerInput): Promise<HandlerResult> {
-    //console.log(JSON.stringify(event));
-
     if (event.httpMethod === "GET") {
         if (!event.queryStringParameters?.state)
             return {
@@ -40,7 +38,6 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         + '&redirect_uri=' + CandyAppRedirectUrl, { });
     const authBody = await authResponse.text();
     const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?'/)[0].replace(/.$/, "");
-    //console.log(redirectAfterLoginUrl);
 
     const loginForm = {
         'un': login,
@@ -50,25 +47,21 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     const frontdoorResponse = await fetchXForm(loginForm, CandyLoginUrl);
     const frontdoorBody = await frontdoorResponse.text();
     const progressiveLoginUrl = frontdoorBody.match(/https:\/\/he-accounts.force.com.+?"/)[0].replace(/.$/, "");
-    //console.log(progressiveLoginUrl);
 
     const frontdoorSetCookies = frontdoorResponse.headers.get("Set-Cookie");
     const sid = frontdoorSetCookies.match(/sid=.+?;/)[0].replace(/.$/, "");
-    //console.log(sid);
 
     const progressiveLoginResponse = await fetch(progressiveLoginUrl, { headers: {
         'Cookie': sid
       }});
     const progressiveLoginBody = await progressiveLoginResponse.text();
     const remoteAccessAuthUrl = progressiveLoginBody.match(/\/CandyApp.+?'/)[0].replace(/.$/, "");
-    //console.log(remoteAccessAuthUrl);
 
     const remoteAccessAuthResponse = await fetch(AuthHost + remoteAccessAuthUrl, { headers: {
         'Cookie': sid
       }});
     const remoteAccessAuthBody = await remoteAccessAuthResponse.text();
     const refreshToken = remoteAccessAuthBody.match(/refresh_token=.+?&/)[0].replace(/^.{14}/, "").replace(/.$/, "");
-    //console.log(refreshToken);
 
     const resultUrl = `https://social.yandex.net/broker/redirect`
     + `?code=${refreshToken}`

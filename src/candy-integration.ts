@@ -4,9 +4,6 @@ import { SendStateReqAlisa } from "./models/alisa/send-state-req-alisa";
 import { StateReqAlisa } from "./models/alisa/state-req-alisa";
 
 export async function handler(event: HandlerInput): Promise<HandlerResult> {
-    //console.log(JSON.stringify(event));
-    //console.log(event.path);
-
     if (!event.path)
         return {
             statusCode: 400
@@ -28,7 +25,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     }
 
     const token = event.headers.Authorization;
-    const client = new CandyClient(token, "TODO");
+    const client = new CandyClient(token);
     if (event.path === "/v1.0/user/devices") {
         return {
             statusCode: 200,
