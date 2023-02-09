@@ -1,7 +1,7 @@
 import { CandyClient } from "./candy-client";
-import { HandlerInput, HandlerResult } from "./models/alysa/handler-models";
-import { SendStateReqAlisa } from "./models/alysa/send-state-req-alisa";
-import { StateReqAlisa } from "./models/alysa/state-req-alisa";
+import { HandlerInput, HandlerResult } from "./models/alisa/handler-models";
+import { SendStateReqAlisa } from "./models/alisa/send-state-req-alisa";
+import { StateReqAlisa } from "./models/alisa/state-req-alisa";
 
 export async function handler(event: HandlerInput): Promise<HandlerResult> {
     //console.log(JSON.stringify(event));

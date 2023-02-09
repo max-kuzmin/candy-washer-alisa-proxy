@@ -1,8 +1,8 @@
-import { AlysaModes } from "../models/consts";
+import { AlisaModes } from "../models/consts";
 import { StartCommandReqCandyBody } from "../models/candy/command-req-candy";
 import { NormalProgram, DryProgram, ExpressProgram, EcoProgram } from "../models/candy/programs-consts";
 
-export function modeToComand(mode: AlysaModes): StartCommandReqCandyBody | undefined {
+export function modeToComand(mode: AlisaModes): StartCommandReqCandyBody | undefined {
     switch (mode) {
         case "normal": return NormalProgram;
         case "dry": return DryProgram;
@@ -12,7 +12,7 @@ export function modeToComand(mode: AlysaModes): StartCommandReqCandyBody | undef
     }
 }
 
-export function programCodeToMode(code: string, dry: string): AlysaModes | undefined {
+export function programCodeToMode(code: string, dry: string): AlisaModes | undefined {
     switch (code) {
         case "77": return "dry";
         case "135": return dry === "0" ? "eco" : "normal";

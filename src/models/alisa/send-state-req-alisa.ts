@@ -1,4 +1,4 @@
-import { AlysaModes, CapabilitiesInstances, CapabilitiesTypes } from "../consts";
+import { AlisaModes, CapabilitiesInstances, CapabilitiesTypes } from "../consts";
 
 export interface SendStateReqAlisa {
     payload: Payload;
@@ -21,5 +21,5 @@ export interface Capability {
 
 export interface State {
     instance: CapabilitiesInstances;
-    value: boolean | AlysaModes;
+    value: boolean | AlisaModes;
 }

@@ -1,4 +1,4 @@
-export type AlysaModes = "dry" | "express" | "normal" | "eco" | "auto";
+export type AlisaModes = "dry" | "express" | "normal" | "eco" | "auto";
 export type CapabilitiesTypes = "devices.capabilities.mode" | "devices.capabilities.toggle" | "devices.capabilities.on_off";
 export type CapabilitiesInstances = "program" | "pause" | "on";
 

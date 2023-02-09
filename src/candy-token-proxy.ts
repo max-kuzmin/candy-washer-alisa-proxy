@@ -1,6 +1,6 @@
 import { fetchXForm } from "./helpers/fetch-x-form";
 import { CandyTokenUrl, ClientAppId } from "./models/consts";
-import { HandlerInput, HandlerResult } from "./models/alysa/handler-models";
+import { HandlerInput, HandlerResult } from "./models/alisa/handler-models";
 import { splitXFormBody } from "./helpers/split-body";
 
 export async function handler(event: HandlerInput): Promise<HandlerResult> {

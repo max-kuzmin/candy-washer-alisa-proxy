@@ -1,13 +1,13 @@
 import { DeviceResCandy } from "./models/candy/device-res-candy";
-import { Device, DevicesResAlisa } from "./models/alysa/devices-res-alisa";
+import { Device, DevicesResAlisa } from "./models/alisa/devices-res-alisa";
 import fetch from "node-fetch";
-import { DeviceState, StateResAlisa } from "./models/alysa/state-res-alisa";
-import { StateReqAlisa } from "./models/alysa/state-req-alisa";
+import { DeviceState, StateResAlisa } from "./models/alisa/state-res-alisa";
+import { StateReqAlisa } from "./models/alisa/state-req-alisa";
 import { modeToComand, programCodeToMode } from "./helpers/mode-to-program-code";
-import { SendStateReqAlisa } from "./models/alysa/send-state-req-alisa";
-import { SendStateResAlisa } from "./models/alysa/send-state-res-alisa";
+import { SendStateReqAlisa } from "./models/alisa/send-state-req-alisa";
+import { SendStateResAlisa } from "./models/alisa/send-state-res-alisa";
 import { CommandReqCandy, PauseResumeCommandReqCandyBody, StartCommandReqCandyBody, StopCommandReqCandyBody } from "./models/candy/command-req-candy";
-import { AlysaModes } from "./models/consts";
+import { AlisaModes } from "./models/consts";
 
 export class CandyClient {
     private readonly host = "https://simply-fi.herokuapp.com/api/v1/";
@@ -168,7 +168,7 @@ export class CandyClient {
                 Pa: capability.state.value ? "1" : "0"
             } as PauseResumeCommandReqCandyBody;
         } else if (capability.type === "devices.capabilities.mode" && capability.state.instance === "program") {
-            command = modeToComand(capability.state.value as AlysaModes)
+            command = modeToComand(capability.state.value as AlisaModes)
         } else if (capability.type === "devices.capabilities.on_off" && capability.state.instance === "on") {
             command = {
                 StSt: "0",

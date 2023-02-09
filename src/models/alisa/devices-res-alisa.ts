@@ -1,4 +1,4 @@
-import { AlysaModes, CapabilitiesInstances, CapabilitiesTypes } from "../consts";
+import { AlisaModes, CapabilitiesInstances, CapabilitiesTypes } from "../consts";
 
 export interface DevicesResAlisa {
     request_id: string;
@@ -51,5 +51,5 @@ export interface DeviceInfo {
 }
 
 export interface CapabilityMode {
-    value: AlysaModes;
+    value: AlisaModes;
 }
