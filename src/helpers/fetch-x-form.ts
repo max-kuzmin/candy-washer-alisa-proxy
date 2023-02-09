@@ -10,9 +10,9 @@ export function fetchXForm(details, url) {
     const formBodyString = formBody.join("&");
     
     return fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        "Content-Type": "application/x-www-form-urlencoded"
       },
       body: formBodyString
     })

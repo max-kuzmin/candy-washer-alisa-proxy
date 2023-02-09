@@ -18,9 +18,9 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         };
 
     const tokenForm = {
-        'grant_type': 'refresh_token',
-        'client_id': ClientAppId,
-        'refresh_token': refreshToken
+        "grant_type": "refresh_token",
+        "client_id": ClientAppId,
+        "refresh_token": refreshToken
     };
     const tokenResponse = await fetchXForm(tokenForm, CandyTokenUrl);
     const tokenBody = await tokenResponse.text();
@@ -32,7 +32,8 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         body: {
             "access_token": token,
             "token_type": "Bearer",
-            "expires_in": 28800 - 60 // 8 часов
+            "expires_in": 28800 - 60, // 8 часов
+            "refresh_token": refreshToken
           }
     };
     

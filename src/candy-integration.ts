@@ -33,7 +33,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         };
     }
 
-    if (event.path === "/v1.0/user/devices/query") {
+    if (event.path === "/v1.0/user/devices/query" && event.body) {
         const reqBody: StateReqAlisa = JSON.parse(event.body);
         return {
             statusCode: 200,
@@ -41,7 +41,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         };
     }
 
-    if (event.path === "/v1.0/user/devices/action") {
+    if (event.path === "/v1.0/user/devices/action" && event.body) {
         const reqBody: SendStateReqAlisa = JSON.parse(event.body);
         return {
             statusCode: 200,
@@ -50,6 +50,6 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     }
 
     return {
-        statusCode: 404
+        statusCode: 400
     };
 };

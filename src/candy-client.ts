@@ -163,14 +163,14 @@ export class CandyClient {
         const alisaDevice = alisaReq.payload.devices[0];
         const capability = alisaDevice.capabilities[0];
 
-        let command: StartCommandReqCandyBody | PauseResumeCommandReqCandyBody | StopCommandReqCandyBody;
+        let command: StartCommandReqCandyBody | PauseResumeCommandReqCandyBody | StopCommandReqCandyBody | undefined;
         if (capability.type === "devices.capabilities.toggle" && capability.state.instance === "pause") {
             command = {
                 encrypted: "0",
                 Pa: capability.state.value ? "1" : "0"
             } as PauseResumeCommandReqCandyBody;
         } else if (capability.type === "devices.capabilities.mode" && capability.state.instance === "program") {
-            command = modeToComand(capability.state.value as AlisaModes)
+            command = modeToComand(capability.state.value as AlisaModes);
         } else if (capability.type === "devices.capabilities.on_off" && capability.state.instance === "on"
             && !capability.state.value) {
             command = {
@@ -178,9 +178,12 @@ export class CandyClient {
                 Write: "1"
             } as StopCommandReqCandyBody;
         } else {
-            return this.composeSentStateResult(alisaDevice, true);
+            return this.composeSentStateResult(alisaDevice, false);
         }
         
+        if (!command)
+            return this.composeSentStateResult(alisaDevice, false);
+
         const commandReqCandy: CommandReqCandy = {
             appliance_id: alisaDevice.id,
             body: Object.entries(command).map(e => e[0] + "=" + e[1]).join("&"),
@@ -188,7 +191,7 @@ export class CandyClient {
         
         try {
             const response = await fetch(this.host + this.commandUrl,
-                { method: 'POST', headers: this.headersForCommand, body: JSON.stringify(commandReqCandy) });
+                { method: "POST", headers: this.headersForCommand, body: JSON.stringify(commandReqCandy) });
             await response.json();
         } catch {
             return this.composeSentStateResult(alisaDevice, true);

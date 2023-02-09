@@ -12,7 +12,7 @@ export function modeToComand(mode: AlisaModes): StartCommandReqCandyBody | undef
     }
 }
 
-export function programCodeToMode(code: string, dry: string): AlisaModes | undefined {
+export function programCodeToMode(code: string, dry: string): AlisaModes {
     switch (code) {
         case "77": return "dry";
         case "135": return dry === "0" ? "eco" : "normal";

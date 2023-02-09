@@ -26,23 +26,28 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         };
     }
 
+    if (!event.body)
+            return {
+                statusCode: 400
+            };
+
     const bodySplitted = splitXFormBody(event.body);
     const state = bodySplitted.get("state");
     const login = bodySplitted.get("login");
     const password = bodySplitted.get("password");
     
     const authResponse = await fetch(CandyAuthUrl
-        + '?response_type=token'
-        + '&client_id=' + ClientAppId
-        + '&scope=' + ScopeString
-        + '&redirect_uri=' + CandyAppRedirectUrl, { });
+        + "?response_type=token"
+        + "&client_id=" + ClientAppId
+        + "&scope=" + ScopeString
+        + "&redirect_uri=" + CandyAppRedirectUrl, { });
     const authBody = await authResponse.text();
-    const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?'/)[0].replace(/.$/, "");
+    const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?"/)[0].replace(/.$/, "");
 
     const loginForm = {
-        'un': login,
-        'startURL': redirectAfterLoginUrl,
-        'pw': password
+        "un": login,
+        "startURL": redirectAfterLoginUrl,
+        "pw": password
     };
     const frontdoorResponse = await fetchXForm(loginForm, CandyLoginUrl);
     const frontdoorBody = await frontdoorResponse.text();
@@ -52,13 +57,13 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     const sid = frontdoorSetCookies.match(/sid=.+?;/)[0].replace(/.$/, "");
 
     const progressiveLoginResponse = await fetch(progressiveLoginUrl, { headers: {
-        'Cookie': sid
+        "Cookie": sid
       }});
     const progressiveLoginBody = await progressiveLoginResponse.text();
-    const remoteAccessAuthUrl = progressiveLoginBody.match(/\/CandyApp.+?'/)[0].replace(/.$/, "");
+    const remoteAccessAuthUrl = progressiveLoginBody.match(/\/CandyApp.+?"/)[0].replace(/.$/, "");
 
     const remoteAccessAuthResponse = await fetch(AuthHost + remoteAccessAuthUrl, { headers: {
-        'Cookie': sid
+        "Cookie": sid
       }});
     const remoteAccessAuthBody = await remoteAccessAuthResponse.text();
     const refreshToken = remoteAccessAuthBody.match(/refresh_token=.+?&/)[0].replace(/^.{14}/, "").replace(/.$/, "");
