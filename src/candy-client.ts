@@ -1,10 +1,10 @@
 import { DeviceResCandy } from "./models/candy/device-res-candy";
-import { Device, DevicesResAlisa } from "./models/alisa/devices-res-alisa";
+import { DeviceFromList, DevicesResAlisa } from "./models/alisa/devices-res-alisa";
 import fetch from "node-fetch";
 import { DeviceState, StateResAlisa } from "./models/alisa/state-res-alisa";
 import { StateReqAlisa } from "./models/alisa/state-req-alisa";
 import { modeToComand, programCodeToMode } from "./helpers/mode-to-program-code";
-import { SendStateReqAlisa } from "./models/alisa/send-state-req-alisa";
+import { DeviceFromSendState, SendStateReqAlisa } from "./models/alisa/send-state-req-alisa";
 import { SendStateResAlisa } from "./models/alisa/send-state-res-alisa";
 import { CommandReqCandy, PauseResumeCommandReqCandyBody, StartCommandReqCandyBody, StopCommandReqCandyBody } from "./models/candy/command-req-candy";
 import { AlisaModes } from "./models/consts";
@@ -43,7 +43,7 @@ export class CandyClient {
         const filteredDevices = devices.filter(e => e.appliance.appliance_type === "washer_dryer");
         for (const device of filteredDevices) {
             const appliance = device.appliance;
-            const mappedDevice: Device = {
+            const mappedDevice: DeviceFromList = {
                 id: appliance.id,
                 name: "Стиральная машина",
                 description: "",
@@ -171,29 +171,34 @@ export class CandyClient {
             } as PauseResumeCommandReqCandyBody;
         } else if (capability.type === "devices.capabilities.mode" && capability.state.instance === "program") {
             command = modeToComand(capability.state.value as AlisaModes)
-        } else if (capability.type === "devices.capabilities.on_off" && capability.state.instance === "on") {
+        } else if (capability.type === "devices.capabilities.on_off" && capability.state.instance === "on"
+            && !capability.state.value) {
             command = {
                 StSt: "0",
                 Write: "1"
             } as StopCommandReqCandyBody;
         } else {
-            return;
+            return this.composeSentStateResult(alisaDevice, true);
         }
         
         const commandReqCandy: CommandReqCandy = {
             appliance_id: alisaDevice.id,
             body: Object.entries(command).map(e => e[0] + "=" + e[1]).join("&"),
         };
-
-        let hasError = false;
+        
         try {
             const response = await fetch(this.host + this.commandUrl,
                 { method: 'POST', headers: this.headersForCommand, body: JSON.stringify(commandReqCandy) });
             await response.json();
         } catch {
-            hasError = true;
+            return this.composeSentStateResult(alisaDevice, true);
         }
 
+        return this.composeSentStateResult(alisaDevice, false);
+    }
+
+    private composeSentStateResult(alisaDevice: DeviceFromSendState, hasError: boolean): SendStateResAlisa {
+        const capability = alisaDevice.capabilities[0];
         const result: SendStateResAlisa = {
             request_id: Date.now().toString(),
             payload: {

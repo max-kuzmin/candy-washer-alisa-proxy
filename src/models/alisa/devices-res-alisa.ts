@@ -7,10 +7,10 @@ export interface DevicesResAlisa {
 
 export interface DevicesPayload {
     user_id: string;
-    devices: Device[];
+    devices: DeviceFromList[];
 }
 
-export interface Device {
+export interface DeviceFromList {
     id: string;
     name: string;
     description: string;

@@ -11,7 +11,7 @@ export interface Payload {
 
 export interface Device {
     id: string;
-    capabilities?: Capability[];
+    capabilities?: SetCapabilityRes[];
     action_result?: DeviceActionResult;
 }
 
@@ -20,7 +20,7 @@ export interface DeviceActionResult {
     error_code: string;
 }
 
-export interface Capability {
+export interface SetCapabilityRes {
     type: CapabilitiesTypes;
     state: State;
 }

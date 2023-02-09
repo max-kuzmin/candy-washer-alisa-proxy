@@ -1,36 +1,60 @@
 export interface CurrentStatusParameters {
     /** Признак подключения машины к управлению через приложение */
     WiFiStatus: "0" | "1";
+    /** Ошибка */
     Err: string;
-    /** Состояние 1 - остановлена, 2 - в процессе, 3 - пауза */
-    MachMd: "1" | "2" | "3";
+    /** Состояние 1 - остановлена, 2 - в процессе, 3 - пауза, 5 - отложенный запуск | 7 - программа завершена */
+    MachMd: "1" | "2" | "3" | "5";
+    /** Программа */
     PrNm: string;
+    /** Состояние программы */
     PrPh: string;
     /** Номер программы 1-200 */
     PrCode: string;
+    /** Уровень пара */
     SLevel: string;
+    /** Температура */
     Temp: string;
+    /** Скорость отжима */
     SpinSp: string;
+    /** Предварительная стирка */
     Opt1: string;
+    /** Гигиена + */
     Opt2: string;
+    /** Режим против сминания */
     Opt3: string;
+    /** Ночной режим */
     Opt4: string;
+    /** Промывка х1 */
     Opt5: string;
+    /** Промывка х2 */
     Opt6: string;
+    /** Промывка х3 */
     Opt7: string;
+    /** Аква плюс */
     Opt8: string;
     Opt9: string;
+    /** Пар */
     Steam: string;
+    /** Сушка */
     DryT: string;
+    /** Спец программа */
     RecipeId: string;
+    /** Состояние диагностики */
     CheckUpState: string;
+    /** Язык ? */
     Lang: string;
+    /** Загрязненность фильтра ? */
     FillR: string;
+    /** Задержка */
     DelVal: string;
     /** Оставшееся время в секундах */
     RemTime: string;
+    /** Потребление ? */
     T0W: string;
+    /** Потребление ? */
     TIW: string;
+    /** Потребление ? */
     T0R: string;
     numF: string;
     unbF: string;
