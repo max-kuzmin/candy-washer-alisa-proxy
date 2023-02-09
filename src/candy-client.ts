@@ -174,8 +174,8 @@ export class CandyClient {
         } else if (capability.type === "devices.capabilities.on_off" && capability.state.instance === "on"
             && !capability.state.value) {
             command = {
-                StSt: "0",
-                Write: "1"
+                Write: "1",
+                StSt: "0"
             } as StopCommandReqCandyBody;
         } else {
             return this.composeSentStateResult(alisaDevice, false);
