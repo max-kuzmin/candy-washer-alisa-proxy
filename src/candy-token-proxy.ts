@@ -32,8 +32,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         body: {
             "access_token": token,
             "token_type": "Bearer",
-            "expires_in": 28800 - 60, // 8 часов
-            "refresh_token": refreshToken
+            "expires_in": 28800 - 60 // 8 часов
           }
     };
     

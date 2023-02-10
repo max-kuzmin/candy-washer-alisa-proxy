@@ -42,7 +42,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         + "&scope=" + ScopeString
         + "&redirect_uri=" + CandyAppRedirectUrl, { });
     const authBody = await authResponse.text();
-    const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?"/)[0].replace(/.$/, "");
+    const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?'/)[0].replace(/.$/, "");
 
     const loginForm = {
         "un": login,
@@ -60,7 +60,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         "Cookie": sid
       }});
     const progressiveLoginBody = await progressiveLoginResponse.text();
-    const remoteAccessAuthUrl = progressiveLoginBody.match(/\/CandyApp.+?"/)[0].replace(/.$/, "");
+    const remoteAccessAuthUrl = progressiveLoginBody.match(/\/CandyApp.+?'/)[0].replace(/.$/, "");
 
     const remoteAccessAuthResponse = await fetch(AuthHost + remoteAccessAuthUrl, { headers: {
         "Cookie": sid
