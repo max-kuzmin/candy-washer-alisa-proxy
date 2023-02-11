@@ -1,55 +1,32 @@
 import { CandyClient } from "./candy-client";
-import { HandlerInput, HandlerResult } from "./models/alisa/handler-models";
+import { HandlerForIntegration, HandlerForIntegrationResult } from "./models/alisa/handler-models";
 import { SendStateReqAlisa } from "./models/alisa/send-state-req-alisa";
 import { StateReqAlisa } from "./models/alisa/state-req-alisa";
 
-export async function handler(event: HandlerInput): Promise<HandlerResult> {
-    if (!event.path)
-        return {
-            statusCode: 400
-        };
+export async function handler(event: HandlerForIntegration): Promise<HandlerForIntegrationResult> {
+    const reqId = event.headers?.request_id;
+    const token = event.headers?.authorization;
+    if (!event.request_type || !reqId || !token)
+        throw new Error();
 
-    if (event.path === "/v1.0") {
-        return {
-            statusCode: 200
-        };
+    if (event.request_type === "discovery") {
+        const client = new CandyClient(token, reqId);
+        return await client.getDevices();
     }
 
-    if (event.path === "/v1.0/user/unlink") {
-        return {
-            statusCode: 200,
-            body: {
-                request_id: Date.now().toString()
-            }
-        };
+    if (event.request_type === "query" && event.payload) {
+        const reqBody = event.payload as StateReqAlisa;
+        const client = new CandyClient(token, reqId);
+        return await client.getState(reqBody);
     }
 
-    const token = event.headers.Authorization;
-    const client = new CandyClient(token);
-    if (event.path === "/v1.0/user/devices") {
-        return {
-            statusCode: 200,
-            body: await client.getDevices()
-        };
-    }
-
-    if (event.path === "/v1.0/user/devices/query" && event.body) {
-        const reqBody: StateReqAlisa = JSON.parse(event.body);
-        return {
-            statusCode: 200,
-            body: await client.getState(reqBody)
-        };
-    }
-
-    if (event.path === "/v1.0/user/devices/action" && event.body) {
-        const reqBody: SendStateReqAlisa = JSON.parse(event.body);
-        return {
-            statusCode: 200,
-            body: await client.sendState(reqBody)
-        };
+    if (event.request_type === "action" && event.payload) {
+        const reqBody = event.payload as SendStateReqAlisa;
+        const client = new CandyClient(token, reqId);
+        return await client.sendState(reqBody);
     }
 
     return {
-        statusCode: 400
+        request_id: reqId
     };
 };

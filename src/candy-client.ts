@@ -16,7 +16,7 @@ export class CandyClient {
     private readonly headers: object;
     private readonly headersForCommand: object;
 
-    constructor(bearer: string,) {
+    constructor(bearer: string, private readonly requestId: string) {
         this.headers = {
             "Salesforce-Auth": 1,
             "Authorization": bearer
@@ -33,7 +33,7 @@ export class CandyClient {
         const devices: DeviceResCandy[] = await response.json();
 
         const result: DevicesResAlisa = {
-            request_id: Date.now().toString(),
+            request_id: this.requestId,
             payload: {
                 user_id: "yandex",
                 devices: []
@@ -112,7 +112,7 @@ export class CandyClient {
         const candyDevices: DeviceResCandy[] = await response.json();
 
         const result: StateResAlisa = {
-            request_id: Date.now().toString(),
+            request_id: this.requestId,
             payload: {
                 devices: []
             }
@@ -159,7 +159,7 @@ export class CandyClient {
         return result;
     }
 
-    async sendState(alisaReq: SendStateReqAlisa): Promise<SendStateResAlisa | undefined> {
+    async sendState(alisaReq: SendStateReqAlisa): Promise<SendStateResAlisa> {
         const alisaDevice = alisaReq.payload.devices[0];
         const capability = alisaDevice.capabilities[0];
 
@@ -203,7 +203,7 @@ export class CandyClient {
     private composeSentStateResult(alisaDevice: DeviceFromSendState, hasError: boolean): SendStateResAlisa {
         const capability = alisaDevice.capabilities[0];
         const result: SendStateResAlisa = {
-            request_id: Date.now().toString(),
+            request_id: this.requestId,
             payload: {
                 devices: [{
                     id: alisaDevice.id,
