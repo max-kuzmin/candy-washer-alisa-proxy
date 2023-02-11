@@ -75,8 +75,10 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     + `&scope=` + ScopeString;
 
     return {
-        statusCode: 200,
-        body: `<html><body><a href=${resultUrl}>Click to complete</a></body></html>`
+        statusCode: 302,
+        headers: {
+            Location: resultUrl
+        }
     };
     
 };

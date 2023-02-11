@@ -8,7 +8,8 @@ export interface HandlerInput {
 
 export interface HandlerResult {
     statusCode: number,
-    body?: object | string
+    body?: object | string,
+    headers?: { [key: string]: string }
 }
 
 export interface HandlerForIntegration {

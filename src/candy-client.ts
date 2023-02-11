@@ -160,7 +160,7 @@ export class CandyClient {
     }
 
     async sendState(alisaReq: SendStateReqAlisa): Promise<SendStateResAlisa> {
-        const alisaDevice = alisaReq.payload.devices[0];
+        const alisaDevice = alisaReq.devices[0];
         const capability = alisaDevice.capabilities[0];
 
         let command: StartCommandReqCandyBody | PauseResumeCommandReqCandyBody | StopCommandReqCandyBody | undefined;
