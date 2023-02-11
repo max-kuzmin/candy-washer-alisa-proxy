@@ -15,11 +15,11 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
             statusCode: 200,
             body: `<html>
             <body>
-                <form style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                    <input type="text" placeholder="E-mail" name="login">
-                    <input type="password" placeholder="Пароль" name="password">
+                <form style="display: flex; flex-direction: column; align-items: center; gap: 1rem; top: 25%; position: relative;">
+                    <input type="text" placeholder="E-mail" name="login" style="font-size: 32pt;">
+                    <input type="password" placeholder="Пароль" name="password" style="font-size: 32pt;">
                     <input type="hidden" name="state" value="${event.queryStringParameters.state}">
-                    <input type="submit" formmethod="post" value="Войти">
+                    <input type="submit" formmethod="post" value="Войти" style="font-size: 32pt; padding: 8px 100px;">
                 </form>
             </body>
             </html>`
