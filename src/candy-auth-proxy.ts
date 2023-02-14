@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import { fetchXForm } from "./helpers/fetch-x-form";
-import { AuthHost, CandyAppRedirectUrl, CandyAuthUrl, CandyLoginUrl, ClientAppId, ScopeString } from "./models/consts";
+import { AuthHost, CandyAppRedirectUrl, CandyAuthUrl, CandyLoginUrl, ClientAppId, OauthAppName, ScopeString } from "./models/consts";
 import { HandlerInput, HandlerResult } from "./models/alisa/handler-models";
 import { splitXFormBody } from "./helpers/split-body";
 
@@ -42,8 +42,8 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         + "&scope=" + ScopeString
         + "&redirect_uri=" + CandyAppRedirectUrl, { });
     const authBody = await authResponse.text();
-    const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?'/)[0].replace(/.$/, "");
 
+    const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?'/)[0].replace(/.$/, "");
     const loginForm = {
         "un": login,
         "startURL": redirectAfterLoginUrl,
@@ -51,23 +51,22 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     };
     const frontdoorResponse = await fetchXForm(loginForm, CandyLoginUrl);
     const frontdoorBody = await frontdoorResponse.text();
-    const progressiveLoginUrl = frontdoorBody.match(/https:\/\/he-accounts.force.com.+?"/)[0].replace(/.$/, "");
 
+    const progressiveLoginUrl = frontdoorBody.match(/https:\/\/he-accounts.force.com.+?"/)[0].replace(/.$/, "");
     const frontdoorSetCookies = frontdoorResponse.headers.get("Set-Cookie");
     const sid = frontdoorSetCookies.match(/sid=.+?;/)[0].replace(/.$/, "");
-
     const progressiveLoginResponse = await fetch(progressiveLoginUrl, { headers: {
         "Cookie": sid
       }});
     const progressiveLoginBody = await progressiveLoginResponse.text();
-    const remoteAccessAuthUrl = progressiveLoginBody.match(/\/CandyApp.+?'/)[0].replace(/.$/, "");
 
+    const remoteAccessAuthUrl = progressiveLoginBody.match(new RegExp(`\/${OauthAppName}.+?'`))[0].replace(/.$/, "");
     const remoteAccessAuthResponse = await fetch(AuthHost + remoteAccessAuthUrl, { headers: {
         "Cookie": sid
       }});
     const remoteAccessAuthBody = await remoteAccessAuthResponse.text();
-    const refreshToken = remoteAccessAuthBody.match(/refresh_token=.+?&/)[0].replace(/^.{14}/, "").replace(/.$/, "");
 
+    const refreshToken = remoteAccessAuthBody.match(/refresh_token=.+?&/)[0].replace(/^.{14}/, "").replace(/.$/, "");
     const resultUrl = `https://social.yandex.net/broker/redirect`
     + `?code=${refreshToken}`
     + `&state=${state}`
