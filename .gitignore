@@ -1,2 +1,3 @@
 node_modules/
 dist/
+/authorized_key.json

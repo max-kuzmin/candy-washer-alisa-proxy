@@ -1,4 +1,4 @@
-import { CandyClient } from "./candy-client";
+import { CandyClient } from "./services/candy-client";
 import { HandlerForIntegration, HandlerForIntegrationResult } from "./models/alisa/handler-models";
 import { SendStateReqAlisa } from "./models/alisa/send-state-req-alisa";
 import { StateReqAlisa } from "./models/alisa/state-req-alisa";

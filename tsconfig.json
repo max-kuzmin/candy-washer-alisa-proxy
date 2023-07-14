@@ -6,8 +6,10 @@
         "outDir": "dist",
         "resolveJsonModule": true,
         "strictNullChecks": true,
+        "experimentalDecorators": true,
+        "esModuleInterop": true
         
     },
-    "include": ["src/**/*", "./package.json"],
+    "include": ["src/**/*", "./package.json", "./authorized_key.json"],
     "exclude": ["node_modules", "jsons"]
 }

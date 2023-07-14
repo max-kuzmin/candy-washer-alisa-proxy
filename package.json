@@ -2,6 +2,7 @@
   "name": "candy-integration",
   "version": "1.0.0",
   "dependencies": {
-    "node-fetch": "^2.0.0"
+    "node-fetch": "^2.0.0",
+    "ydb-sdk": "^4.6.0"
   }
 }

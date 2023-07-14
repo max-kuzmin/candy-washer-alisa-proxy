@@ -12,3 +12,6 @@ export const CandyTokenUrl = `https://${BaseHost}/${OauthAppName}/services/oauth
 export const CandyAuthUrl = `https://${BaseHost}/${OauthAppName}/services/oauth2/authorize`;
 export const CandyLoginUrl = `https://${BaseHost}/${OauthAppName}/login`;
 export const ProgressiveLoginRegex = `https:\/\/${BaseHost}.+?"`;
+
+export const YdbEndpoint = "grpcs://ydb.serverless.yandexcloud.net:2135";
+export const YdbDatabasePath = "/ru-central1/b1g8t7pnet74nb0a922t/etnhnkabenkr164m83cv";
