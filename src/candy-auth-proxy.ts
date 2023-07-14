@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import { fetchXForm } from "./helpers/fetch-x-form";
-import { AuthHost, CandyAppRedirectUrl, CandyAuthUrl, CandyLoginUrl, ClientAppId, OauthAppName, ScopeString } from "./models/consts";
+import { AuthHost, CandyAppRedirectUrl, CandyAuthUrl, CandyLoginUrl, ClientAppId, OauthAppName, ProgressiveLoginRegex, ScopeString } from "./models/consts";
 import { HandlerInput, HandlerResult } from "./models/alisa/handler-models";
 import { splitXFormBody } from "./helpers/split-body";
 
@@ -52,7 +52,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     const frontdoorResponse = await fetchXForm(loginForm, CandyLoginUrl);
     const frontdoorBody = await frontdoorResponse.text();
 
-    const progressiveLoginUrl = frontdoorBody.match(/https:\/\/he-accounts.force.com.+?"/)[0].replace(/.$/, "");
+    const progressiveLoginUrl = frontdoorBody.match(ProgressiveLoginRegex)[0].replace(/.$/, "");
     const frontdoorSetCookies = frontdoorResponse.headers.get("Set-Cookie");
     const sid = frontdoorSetCookies.match(/sid=.+?;/)[0].replace(/.$/, "");
     const progressiveLoginResponse = await fetch(progressiveLoginUrl, { headers: {
