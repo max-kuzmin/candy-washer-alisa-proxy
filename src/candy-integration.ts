@@ -17,7 +17,8 @@ export async function handler(event: HandlerForIntegration): Promise<HandlerForI
     if (event.request_type === "query" && event.payload) {
         const reqBody = event.payload as StateReqAlisa;
         const client = new CandyClient(token, reqId);
-        return await client.getState(reqBody);
+        const result = await client.getState(reqBody);
+        return result[0];
     }
 
     if (event.request_type === "action" && event.payload) {

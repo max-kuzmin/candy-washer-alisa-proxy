@@ -11,19 +11,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
                 statusCode: 400
             };
 
-        return {
-            statusCode: 200,
-            body: `<html>
-            <body>
-                <form style="display: flex; flex-direction: column; align-items: center; gap: 1rem; top: 25%; position: relative;">
-                    <input type="text" placeholder="E-mail" name="login" style="font-size: 32pt;">
-                    <input type="password" placeholder="Пароль" name="password" style="font-size: 32pt;">
-                    <input type="hidden" name="state" value="${event.queryStringParameters.state}">
-                    <input type="submit" formmethod="post" value="Войти" style="font-size: 32pt; padding: 8px 100px;">
-                </form>
-            </body>
-            </html>`
-        };
+        return loginPage(event);
     }
 
     if (!event.body)
@@ -36,49 +24,70 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
     const login = bodySplitted.get("login");
     const password = bodySplitted.get("password");
     
-    const authResponse = await fetch(CandyAuthUrl
-        + "?response_type=token"
-        + "&client_id=" + ClientAppId
-        + "&scope=" + ScopeString
-        + "&redirect_uri=" + CandyAppRedirectUrl, { });
-    const authBody = await authResponse.text();
+    try {
+        const authResponse = await fetch(CandyAuthUrl
+            + "?response_type=token"
+            + "&client_id=" + ClientAppId
+            + "&scope=" + ScopeString
+            + "&redirect_uri=" + CandyAppRedirectUrl, { });
+        const authBody = await authResponse.text();
 
-    const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?'/)[0].replace(/.$/, "");
-    const loginForm = {
-        "un": login,
-        "startURL": redirectAfterLoginUrl,
-        "pw": password
-    };
-    const frontdoorResponse = await fetchXForm(loginForm, CandyLoginUrl);
-    const frontdoorBody = await frontdoorResponse.text();
+        const redirectAfterLoginUrl = authBody.match(/setup%2Fsecur.+?'/)[0].replace(/.$/, "");
 
-    const progressiveLoginUrl = frontdoorBody.match(ProgressiveLoginRegex)[0].replace(/.$/, "");
-    const frontdoorSetCookies = frontdoorResponse.headers.get("Set-Cookie");
-    const sid = frontdoorSetCookies.match(/sid=.+?;/)[0].replace(/.$/, "");
-    const progressiveLoginResponse = await fetch(progressiveLoginUrl, { headers: {
-        "Cookie": sid
-      }});
-    const progressiveLoginBody = await progressiveLoginResponse.text();
+        const loginForm = {
+            "un": login,
+            "startURL": redirectAfterLoginUrl,
+            "pw": password
+        };
+        const frontdoorResponse = await fetchXForm(loginForm, CandyLoginUrl);
+        const frontdoorBody = await frontdoorResponse.text();
 
-    const remoteAccessAuthUrl = progressiveLoginBody.match(new RegExp(`\/${OauthAppName}.+?'`))[0].replace(/.$/, "");
-    const remoteAccessAuthResponse = await fetch(AuthHost + remoteAccessAuthUrl, { headers: {
-        "Cookie": sid
-      }});
-    const remoteAccessAuthBody = await remoteAccessAuthResponse.text();
+        const progressiveLoginUrl = frontdoorBody.match(ProgressiveLoginRegex)[0].replace(/.$/, "");
+        const frontdoorSetCookies = frontdoorResponse.headers.get("Set-Cookie");
+        const sid = frontdoorSetCookies.match(/sid=.+?;/)[0].replace(/.$/, "");
+        const progressiveLoginResponse = await fetch(progressiveLoginUrl, { headers: {
+            "Cookie": sid
+        }});
+        const progressiveLoginBody = await progressiveLoginResponse.text();
 
-    const refreshToken = remoteAccessAuthBody.match(/refresh_token=.+?&/)[0].replace(/^.{14}/, "").replace(/.$/, "");
-    const resultUrl = `https://social.yandex.net/broker/redirect`
-    + `?code=${refreshToken}`
-    + `&state=${state}`
-    + `&client_id=` + ClientAppId
-    + `&scope=` + ScopeString;
+        const remoteAccessAuthUrl = progressiveLoginBody.match(new RegExp(`\/${OauthAppName}.+?'`))[0].replace(/.$/, "");
+        const remoteAccessAuthResponse = await fetch(AuthHost + remoteAccessAuthUrl, { headers: {
+            "Cookie": sid
+        }});
+        const remoteAccessAuthBody = await remoteAccessAuthResponse.text();
 
-    return {
-        statusCode: 302,
-        headers: {
-            Location: resultUrl
-        }
-    };
-    
+        const refreshToken = remoteAccessAuthBody.match(/refresh_token=.+?&/)[0].replace(/^.{14}/, "").replace(/.$/, "");
+        const resultUrl = `https://social.yandex.net/broker/redirect`
+        + `?code=${refreshToken}`
+        + `&state=${state}`
+        + `&client_id=` + ClientAppId
+        + `&scope=` + ScopeString;
+
+        return {
+            statusCode: 302,
+            headers: {
+                Location: resultUrl
+            }
+        };
+    } catch {
+        return loginPage(event, true);
+    }
 };
 
+
+function loginPage(event: HandlerInput, wrongPassword = false): HandlerResult | PromiseLike<HandlerResult> {
+    return {
+        statusCode: 200,
+        body: `<html>
+            <body>
+                <form style="display: flex; flex-direction: column; align-items: center; gap: 1rem; top: 25%; position: relative;">
+                    <input type="text" placeholder="E-mail" name="login" style="font-size: 32pt;">
+                    <input type="password" placeholder="Пароль" name="password" style="font-size: 32pt;">
+                    ${wrongPassword ? "<div>Неправильный пароль</div>" : ""}
+                    <input type="hidden" name="state" value="${event.queryStringParameters.state}">
+                    <input type="submit" formmethod="post" value="Войти" style="font-size: 32pt; padding: 8px 100px;">
+                </form>
+            </body>
+            </html>`
+    };
+}

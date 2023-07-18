@@ -3,29 +3,33 @@ import {declareType, TypedData, Types, withTypeOptions, snakeToCamelCaseConversi
 export interface IOperationEntity {
     time: Date;
     type: string;
+    instance: string;
     value: string;
 }
 
-//TODO сохранять еще и инстанс
 @withTypeOptions({namesConversion: snakeToCamelCaseConversion})
 export class OperationEntity extends TypedData {
     @declareType(Types.DATETIME)
     public time: Date;
 
-    @declareType(Types.STRING)
+    @declareType(Types.TEXT)
     public type: string;
 
-    @declareType(Types.STRING)
+    @declareType(Types.TEXT)
+    public instance: string;
+
+    @declareType(Types.TEXT)
     public value: string;
 
-    static create(time: Date, type: string, value: string): OperationEntity {
-        return new this({time, type, value});
+    static create(time: Date, type: string, instance: string, value: string): OperationEntity {
+        return new this({time, type, instance, value});
     }
 
     constructor(data: IOperationEntity) {
         super(data);
         this.time = data.time;
         this.type = data.type;
+        this.instance = data.instance;
         this.value = data.value;
     }
 }

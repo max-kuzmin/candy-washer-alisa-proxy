@@ -1,33 +1,43 @@
 import { Driver, IamAuthService, getSACredentialsFromJson } from 'ydb-sdk';
 import { OperationEntity } from '../models/ydb/operation-entity';
-import { CapabilitiesTypes, YdbDatabasePath, YdbEndpoint } from '../models/consts';
+import { CapabilitiesInstances, CapabilitiesTypes, YdbDatabasePath, YdbEndpoint } from '../models/consts';
 
 export class YdbClient {
     private driver: Driver;
 
-    async addOperation(type: CapabilitiesTypes, value: string, date: Date) {
+    async addOperation(type: CapabilitiesTypes, instance: CapabilitiesInstances, value: string, date: Date = new Date()) {
+        if (!this.driver)
+            await this.createDriver();
+
         const query = `
-            UPSERT INTO candy (time, type, value)
-            VALUES (Datetime("${date.toISOString().split('.')[0]+'Z'}"), "${type}", "${value}")`;
+            UPSERT INTO candy (time, type, instance, value)
+            VALUES (Datetime("${date.toISOString().split('.')[0]+'Z'}"), "${type}", "${instance}", "${value}")`;
 
         await this.driver.tableClient.withSession(session => session.executeQuery(query));
+        await this.dispose();
     }
 
-    //TODO получать только TOP 1 записей каждого типа
     async getLastOperations(): Promise<OperationEntity[]> {
+        if (!this.driver)
+            await this.createDriver();
+
         const query = `
-            SELECT *
-            FROM candy
-            ORDER BY time DESC
-            LIMIT 10`;
+            SELECT main.*
+            FROM candy AS main
+            INNER JOIN
+                (SELECT MAX(time) AS time
+                FROM candy
+                GROUP BY type) AS latest
+                ON latest.time = main.time`;
 
         const { resultSets } = await this.driver.tableClient.withSession(session => session.executeQuery(query));
         const result = OperationEntity.createNativeObjects(resultSets[0]) as OperationEntity[];
+        await this.dispose();
         return result;
     }
 
 
-    async createDriver(): Promise<void> {
+    private async createDriver(): Promise<void> {
         const creds = getSACredentialsFromJson("authorized_key.json");
         const driver = new Driver({
             endpoint: YdbEndpoint,
@@ -42,7 +52,8 @@ export class YdbClient {
         this.driver = driver;
     }
 
-    async dispose(): Promise<void> {
+    private async dispose(): Promise<void> {
         this.driver.destroy();
+        this.driver = undefined!;
     }
 }

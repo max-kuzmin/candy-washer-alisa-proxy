@@ -1,7 +1,8 @@
 CREATE TABLE `candy`
 (
     `time` Datetime,
-    `type` String,
-    `value` String,
+    `type` Text,
+    `instance` Text,
+    `value` Text,
     PRIMARY KEY (`time`)
 );

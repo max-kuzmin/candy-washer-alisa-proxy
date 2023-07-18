@@ -1,15 +1,14 @@
 import { DeviceResCandy } from "../models/candy/device-res-candy";
 import { DeviceFromList, DevicesResAlisa } from "../models/alisa/devices-res-alisa";
 import fetch from "node-fetch";
-import { DeviceState, StateResAlisa } from "../models/alisa/state-res-alisa";
+import { Capability, DeviceState, StateResAlisa } from "../models/alisa/state-res-alisa";
 import { StateReqAlisa } from "../models/alisa/state-req-alisa";
 import { modeToComand, programCodeToMode } from "../helpers/mode-to-program-code";
 import { DeviceFromSendState, SendStateReqAlisa } from "../models/alisa/send-state-req-alisa";
 import { SendStateResAlisa } from "../models/alisa/send-state-res-alisa";
 import { CommandReqCandy, PauseResumeCommandReqCandyBody, StartCommandReqCandyBody, StopCommandReqCandyBody } from "../models/candy/command-req-candy";
-import { AlisaModes, CapabilitiesTypes } from "../models/consts";
+import { AlisaModes } from "../models/consts";
 import { YdbClient } from './ydb-client';
-import { OperationEntity } from '../models/ydb/operation-entity';
 
 export class CandyClient {
     private readonly host = "https://simply-fi.herokuapp.com/api/v1/";
@@ -17,6 +16,8 @@ export class CandyClient {
     private readonly commandUrl = "commands.json";
     private readonly headers: object;
     private readonly headersForCommand: object;
+    private readonly ydbClient = new YdbClient();
+    private readonly oneMinuteBefore: Date;
 
     constructor(bearer: string, private readonly requestId: string) {
         this.headers = {
@@ -28,6 +29,9 @@ export class CandyClient {
             "Content-Type": "application/json",
             ...this.headers
         };
+
+        this.oneMinuteBefore = new Date();
+        this.oneMinuteBefore.setMinutes(this.oneMinuteBefore.getMinutes() - 1);
     }
 
     async getDevices(): Promise<DevicesResAlisa> {
@@ -109,8 +113,7 @@ export class CandyClient {
         return result;
     }
 
-    //TODO возвращать также флаг, заблочено ли изменение, если фактическое состояние отличается от состояния в БД
-    async getState(alisaReq: StateReqAlisa): Promise<StateResAlisa> {
+    async getState(alisaReq: StateReqAlisa): Promise<[state: StateResAlisa, differs: boolean]> {
         const response = await fetch(this.host + this.getDevicesUrl, { headers: this.headers });
         const candyDevices: DeviceResCandy[] = await response.json();
 
@@ -123,7 +126,7 @@ export class CandyClient {
 
         const alisaDevice = alisaReq.devices[0];
         if (!alisaDevice)
-            return result;
+            return [result, false];
 
         const candyDevice = candyDevices.find(e => e.appliance.id === alisaDevice.id)?.appliance;
         if (!candyDevice) {
@@ -133,11 +136,11 @@ export class CandyClient {
                 error_code: "404"
             };
             result.payload.devices.push(alisaDeviceState);
-            return result;
+            return [result, false];
         }
 
         const isOnline = candyDevice.current_status_parameters.WiFiStatus === "1"
-            && new Date(candyDevice.current_status_update) > this.twoMinutesBefore();
+            && new Date(candyDevice.current_status_update) > this.oneMinuteBefore;
 
         const alisaDeviceState: DeviceState = {
             id: alisaDevice.id,
@@ -166,71 +169,78 @@ export class CandyClient {
             ]
         };
         
-        await this.enrichValues(alisaDeviceState);
+        const differs = await this.enrichValues(alisaDeviceState);
         result.payload.devices.push(alisaDeviceState);
 
-        return result;
+        return [result, differs];
     }
 
-    private async enrichValues(state: DeviceState): Promise<void> {
+    private async enrichValues(state: DeviceState): Promise<boolean> {
         if (!state.capabilities)
-            return;
+            return false;
 
-        const lastOperations = await this.getYdbOperations();
+        const lastOperations = await this.ydbClient.getLastOperations();
+        let differs = false;
 
         for (const capability of state.capabilities) {
             const entity = lastOperations.filter(e => e.type === capability.type)[0];
-            if (entity && entity.time > this.twoMinutesBefore()) {
+            if (entity && entity.time > this.oneMinuteBefore) {
+                differs = true;
                 capability.state.value = (typeof capability.state.value === "boolean")
                     ? entity.value === "true"
                     : entity.value as AlisaModes;
             }
         }
-    }
 
-    //TODO не создавать каждый раз
-    private twoMinutesBefore(): Date {
-        const twoMinutesBefore = new Date();
-        twoMinutesBefore.setMinutes(twoMinutesBefore.getMinutes() - 1);
-        return twoMinutesBefore;
+        return differs;
     }
 
     async sendState(alisaReq: SendStateReqAlisa): Promise<SendStateResAlisa> {
-        //TODO проверять фактическое состояние, если оно соответствует, то разблокировать раньше, чем истечет время
-        //TODO проверять фактический режим и блокировать изменение режима, если он отличается от авто
-        //TODO запрещать ставить на паузу и выключать, если режим - авто
+        const [actualState, stateDiffers] = await this.getState(alisaReq);
+        const actualCapabilities = actualState.payload.devices[0].capabilities;
         const alisaDevice = alisaReq.devices[0];
         const capability = alisaDevice.capabilities[0];
 
         let command: StartCommandReqCandyBody | PauseResumeCommandReqCandyBody | StopCommandReqCandyBody | undefined;
 
-        const lastOps = await this.getYdbOperations();
-        if (lastOps.find(e => e.time > this.twoMinutesBefore()))
+        const lastOperations = await this.ydbClient.getLastOperations();
+        if (stateDiffers && lastOperations.find(e => e.time > this.oneMinuteBefore))
             return this.composeSentStateResult(alisaDevice, true);
 
         // pause or continue
         if (capability.type === "devices.capabilities.toggle" && capability.state.instance === "pause") {
+
+            const error = this.errorIfModeIsAuto(actualCapabilities, alisaDevice);
+            if (error) return error;
+                
             const isPause = capability.state.value ? "1" : "0";
             command = {
                 encrypted: "0",
                 Pa: isPause
             } as PauseResumeCommandReqCandyBody;
 
-            this.addYdbOperation(capability.type, "" + capability.state.value);
+            this.ydbClient.addOperation(capability.type, capability.state.instance, capability.state.value.toString());
 
         // set program
         } else if (capability.type === "devices.capabilities.mode" && capability.state.instance === "program") {
+            const error = this.errorIfModeIsAuto(actualCapabilities, alisaDevice, false);
+            if (error) return error;
+
             const mode = capability.state.value as AlisaModes;
             command = modeToComand(mode);
-            this.addYdbOperation(capability.type, mode);
+            this.ydbClient.addOperation(capability.type, capability.state.instance, mode);
 
         // stop
         } else if (capability.type === "devices.capabilities.on_off" && capability.state.instance === "on" && !capability.state.value) {
+            
+            const error = this.errorIfModeIsAuto(actualCapabilities, alisaDevice);
+            if (error) return error;
+
             command = {
                 Write: "1",
                 StSt: "0"
             } as StopCommandReqCandyBody;
-            this.addYdbOperation(capability.type, "false");
+            this.ydbClient.addOperation(capability.type, capability.state.instance, "false");
 
         // start and others
         } else {
@@ -281,19 +291,9 @@ export class CandyClient {
         return result;
     }
 
-    //TODO: вынести в YDBClient
-    private async addYdbOperation(type: CapabilitiesTypes, value: string): Promise<void> {
-        const ydb = new YdbClient();
-        await ydb.createDriver();
-        await ydb.addOperation(type, value, new Date());
-        await ydb.dispose();
-    }
-
-    private async getYdbOperations(): Promise<OperationEntity[]> {
-        const ydb = new YdbClient();
-        await ydb.createDriver();
-        const result = await ydb.getLastOperations();
-        await ydb.dispose();
-        return result;
+    private errorIfModeIsAuto(actualCapabilities: Capability[] | undefined, alisaDevice: DeviceFromSendState, isAuto = true): SendStateResAlisa | undefined {
+        if (actualCapabilities?.find(e => e.type === "devices.capabilities.mode"
+            && (isAuto && e.state.value === 'auto' || !isAuto && e.state.value !== 'auto')))
+                return this.composeSentStateResult(alisaDevice, true)
     }
 }
