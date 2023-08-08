@@ -10,7 +10,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         };
 
     const bodySplitted = splitXFormBody(event.body);
-    const refreshToken = bodySplitted.get("refresh_token") ??  bodySplitted.get("code");
+    const refreshToken = bodySplitted.get("refresh_token") ?? bodySplitted.get("code");
 
     if (!refreshToken)
         return {
@@ -31,6 +31,7 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
         statusCode: 200,
         body: {
             "access_token": token,
+            "refresh_token": refreshToken,
             "token_type": "Bearer",
             "expires_in": 28800 - 60 // 8 часов
           }

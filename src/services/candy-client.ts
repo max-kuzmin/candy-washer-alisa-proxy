@@ -149,7 +149,9 @@ export class CandyClient {
                     type: "devices.capabilities.mode",
                     state: {
                         instance: "program",
-                        value: programCodeToMode(candyDevice.current_status_parameters.PrCode, candyDevice.current_status_parameters.DryT)
+                        value: isOnline
+                            ? programCodeToMode(candyDevice.current_status_parameters.PrCode, candyDevice.current_status_parameters.DryT)
+                            : "auto"
                     }
                 },
                 {
