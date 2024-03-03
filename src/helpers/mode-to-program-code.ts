@@ -1,22 +1,23 @@
-import { AlisaModes } from "../models/consts";
-import { StartCommandReqCandyBody } from "../models/candy/command-req-candy";
-import { NormalProgram, DryProgram, ExpressProgram, EcoProgram } from "../models/candy/programs-consts";
+import { CapabilityModes } from 'mk-alisa-proxy-base';
+import { StartCommandReqCandyBody } from '../models/candy/command-req-candy';
+import { NormalProgram, DryProgram, ExpressProgram, EcoProgram } from '../models/candy/programs-consts';
+import { CandyFunctionStatus } from '../models/consts';
 
-export function modeToComand(mode: AlisaModes): StartCommandReqCandyBody | undefined {
+export function modeToComand(mode: CapabilityModes): StartCommandReqCandyBody | undefined {
     switch (mode) {
-        case "normal": return NormalProgram;
-        case "dry": return DryProgram;
-        case "express": return ExpressProgram;
-        case "eco": return EcoProgram;
+        case CapabilityModes.Normal: return NormalProgram;
+        case CapabilityModes.Dry: return DryProgram;
+        case CapabilityModes.Express: return ExpressProgram;
+        case CapabilityModes.Eco: return EcoProgram;
         default: return;
     }
 }
 
-export function programCodeToMode(code: string, dry: string): AlisaModes {
+export function programCodeToMode(code: string, dry: string): CapabilityModes {
     switch (code) {
-        case "77": return "dry";
-        case "135": return dry === "0" ? "eco" : "normal";
-        case "71": return "express";
-        default: return "auto";
+        case DryProgram.PrCode: return CapabilityModes.Dry;
+        case EcoProgram.PrCode: return dry === CandyFunctionStatus.Off ? CapabilityModes.Eco : CapabilityModes.Normal;
+        case ExpressProgram.PrCode: return CapabilityModes.Express;
+        default: return CapabilityModes.Auto;
     }
 }

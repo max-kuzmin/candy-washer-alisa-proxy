@@ -1,7 +1,5 @@
-import { fetchXForm } from "./helpers/fetch-x-form";
-import { CandyTokenUrl, ClientAppId } from "./models/consts";
-import { HandlerInput, HandlerResult } from "./models/alisa/handler-models";
-import { splitXFormBody } from "./helpers/split-body";
+import { HandlerInput, HandlerResult, splitXFormBody, fetchXForm } from 'mk-alisa-proxy-base';
+import { ClientAppId, CandyTokenUrl } from './models/consts';
 
 export async function handler(event: HandlerInput): Promise<HandlerResult> {
     if (!event.body)

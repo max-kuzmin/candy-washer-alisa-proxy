@@ -1,33 +1,10 @@
-import { CandyClient } from "./services/candy-client";
-import { HandlerForIntegration, HandlerForIntegrationResult } from "./models/alisa/handler-models";
-import { SendStateReqAlisa } from "./models/alisa/send-state-req-alisa";
-import { StateReqAlisa } from "./models/alisa/state-req-alisa";
+import { HandlerForIntegration, HandlerForIntegrationResult, alisaHandlerBase } from 'mk-alisa-proxy-base';
+import { CandyClient } from './services/candy-client';
 
-export async function handler(event: HandlerForIntegration): Promise<HandlerForIntegrationResult> {
-    const reqId = event.headers?.request_id;
+export function handler(event: HandlerForIntegration): Promise<HandlerForIntegrationResult> {
     const token = event.headers?.authorization;
-    if (!event.request_type || !reqId || !token)
+    if (!token)
         throw new Error();
 
-    if (event.request_type === "discovery") {
-        const client = new CandyClient(token, reqId);
-        return await client.getDevices();
-    }
-
-    if (event.request_type === "query" && event.payload) {
-        const reqBody = event.payload as StateReqAlisa;
-        const client = new CandyClient(token, reqId);
-        const result = await client.getState(reqBody);
-        return result[0];
-    }
-
-    if (event.request_type === "action" && event.payload) {
-        const reqBody = event.payload as SendStateReqAlisa;
-        const client = new CandyClient(token, reqId);
-        return await client.sendState(reqBody);
-    }
-
-    return {
-        request_id: reqId
-    };
+    return alisaHandlerBase(event, reqId => new CandyClient(token, reqId));
 };

@@ -1,8 +1,11 @@
 {
   "name": "candy-integration",
   "version": "1.0.0",
+  "scripts": {
+    "build": "tsc"
+  },
   "dependencies": {
-    "node-fetch": "^2.0.0",
+    "mk-alisa-proxy-base": "^1.0.5",
     "ydb-sdk": "^4.6.0"
   }
 }

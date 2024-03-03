@@ -1,15 +1,31 @@
 {
+    "files": ["src/candy-integration.ts", "src/candy-token-proxy.ts", "src/candy-auth-proxy.ts"],
+    "include": ["src/**/*", "./package.json"],
+    "exclude": ["jsons"],
     "compilerOptions": {
-        "lib": ["ESNext", "dom"],
-        "target": "ESNext",
-        "module": "commonjs",
-        "outDir": "dist",
-        "resolveJsonModule": true,
-        "strictNullChecks": true,
-        "experimentalDecorators": true,
-        "esModuleInterop": true
-        
-    },
-    "include": ["src/**/*", "./package.json", "./authorized_key.json"],
-    "exclude": ["node_modules", "jsons"]
+      "target": "ESNext",
+      "module": "CommonJS",
+      "declaration": false,
+      "outDir": "./dist",
+      "strict": true,
+      "noImplicitAny": true,
+      "strictNullChecks": true,
+      "strictFunctionTypes": true,
+      "strictBindCallApply": true,
+      "strictPropertyInitialization": true,
+      "noImplicitThis": true,
+      "alwaysStrict": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true,
+      "noUncheckedIndexedAccess": true,
+      "noImplicitOverride": true,
+      "noPropertyAccessFromIndexSignature": true,
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "resolveJsonModule": true,
+      "experimentalDecorators": true,
+      "skipLibCheck": true,
+    }
 }

@@ -1,27 +1,21 @@
-import { DeviceResCandy } from "../models/candy/device-res-candy";
-import { DeviceFromList, DevicesResAlisa } from "../models/alisa/devices-res-alisa";
-import fetch from "node-fetch";
-import { Capability, DeviceState, StateResAlisa } from "../models/alisa/state-res-alisa";
-import { StateReqAlisa } from "../models/alisa/state-req-alisa";
-import { modeToComand, programCodeToMode } from "../helpers/mode-to-program-code";
-import { DeviceFromSendState, SendStateReqAlisa } from "../models/alisa/send-state-req-alisa";
-import { SendStateResAlisa } from "../models/alisa/send-state-res-alisa";
-import { CommandReqCandy, PauseResumeCommandReqCandyBody, StartCommandReqCandyBody, StopCommandReqCandyBody } from "../models/candy/command-req-candy";
-import { AlisaModes } from "../models/consts";
+import { SmartHomeClient, DevicesResAlisa, DeviceFromList, StateReqAlisa, StateResAlisa, DeviceState, SendStateReqAlisa, SendStateResAlisa, DeviceFromSendState, Capability, DeviceTypes, CapabilitiesTypes, CapabilitiesInstances, CapabilityModes, HttpMethod } from 'mk-alisa-proxy-base';
+import { programCodeToMode, modeToComand } from '../helpers/mode-to-program-code';
+import { StartCommandReqCandyBody, PauseResumeCommandReqCandyBody, StopCommandReqCandyBody, CommandReqCandy } from '../models/candy/command-req-candy';
+import { DeviceResCandy } from '../models/candy/device-res-candy';
 import { YdbClient } from './ydb-client';
+import { AppliencesTypes, MachineMode, CandyFunctionStatus, GetDevicesUrl, CommandUrl } from '../models/consts';
 
-export class CandyClient {
-    private readonly host = "https://simply-fi.herokuapp.com/api/v1/";
-    private readonly getDevicesUrl = "appliances.json?with_programs=0";
-    private readonly commandUrl = "commands.json";
-    private readonly headers: object;
-    private readonly headersForCommand: object;
+export class CandyClient extends SmartHomeClient {
+    private readonly headers: HeadersInit;
+    private readonly headersForCommand: HeadersInit;
     private readonly ydbClient = new YdbClient();
     private readonly oneMinuteBefore: Date;
 
-    constructor(bearer: string, private readonly requestId: string) {
+    constructor(bearer: string, requestId: string) {
+        super(requestId);
+
         this.headers = {
-            "Salesforce-Auth": 1,
+            "Salesforce-Auth": "1",
             "Authorization": bearer
         };
 
@@ -32,10 +26,11 @@ export class CandyClient {
 
         this.oneMinuteBefore = new Date();
         this.oneMinuteBefore.setMinutes(this.oneMinuteBefore.getMinutes() - 1);
+
     }
 
     async getDevices(): Promise<DevicesResAlisa> {
-        const response = await fetch(this.host + this.getDevicesUrl, { headers: this.headers });
+        const response = await fetch(GetDevicesUrl, { headers: this.headers });
         const devices: DeviceResCandy[] = await response.json();
 
         const result: DevicesResAlisa = {
@@ -46,15 +41,15 @@ export class CandyClient {
             }
         };
 
-        const filteredDevices = devices.filter(e => e.appliance.appliance_type === "washer_dryer");
+        const filteredDevices = devices.filter(e => e.appliance.appliance_type === AppliencesTypes.WasherDryer);
         for (const device of filteredDevices) {
             const appliance = device.appliance;
             const mappedDevice: DeviceFromList = {
                 id: appliance.id,
                 name: "Стиральная машина",
                 description: "",
-                type: "devices.types.washing_machine",
-                custom_data: { },
+                type: DeviceTypes.WashingMachine,
+                custom_data: {},
                 room: "",
                 device_info: {
                     hw_version: "1.0",
@@ -62,46 +57,47 @@ export class CandyClient {
                     sw_version: "1.0",
                     model: appliance.appliance_model
                 },
+                properties: [],
                 capabilities: [
                     {
-                        type: "devices.capabilities.on_off",
+                        type: CapabilitiesTypes.OnOff,
                         reportable: true,
                         retrievable: true,
                         parameters: {
-                            instance: "on"
+                            instance: CapabilitiesInstances.On
                         }
                     },
                     {
-                        type: "devices.capabilities.mode",
+                        type: CapabilitiesTypes.Mode,
                         retrievable: true,
                         reportable: true,
                         parameters: {
-                            instance: "program",
+                            instance: CapabilitiesInstances.Program,
                             modes: [
                                 {
-                                    value: "dry" //только сушка 60 минут
+                                    value: CapabilityModes.Dry //только сушка 60 минут
                                 },
                                 {
-                                    value: "express" // быстрая 30 минут без сушки
+                                    value: CapabilityModes.Express // быстрая 30 минут без сушки
                                 },
                                 {
-                                    value: "normal" // смешанная 60 минут с сушкой
+                                    value: CapabilityModes.Normal // смешанная 60 минут с сушкой
                                 },
                                 {
-                                    value: "eco" // смешанная 60 минут без сушки
+                                    value: CapabilityModes.Eco // смешанная 60 минут без сушки
                                 },
                                 {
-                                    value: "auto" //режим, который задает пользователь за пределами алисы
+                                    value: CapabilityModes.Auto //режим, который задает пользователь за пределами алисы
                                 }
                             ]
                         },
                     },
                     {
-                        type: "devices.capabilities.toggle",
+                        type: CapabilitiesTypes.Toggle,
                         reportable: true,
                         retrievable: true,
                         parameters: {
-                            instance: "pause"
+                            instance: CapabilitiesInstances.Pause
                         }
                     }
                 ]
@@ -113,8 +109,12 @@ export class CandyClient {
         return result;
     }
 
-    async getState(alisaReq: StateReqAlisa): Promise<[state: StateResAlisa, differs: boolean]> {
-        const response = await fetch(this.host + this.getDevicesUrl, { headers: this.headers });
+    async getState(alisaReq: StateReqAlisa): Promise<StateResAlisa> {
+        return (await this.getStateInternal(alisaReq))[0];
+    }
+
+    private async getStateInternal(alisaReq: StateReqAlisa): Promise<[state: StateResAlisa, differs: boolean]> {
+        const response = await fetch(GetDevicesUrl, { headers: this.headers });
         const candyDevices: DeviceResCandy[] = await response.json();
 
         const result: StateResAlisa = {
@@ -139,38 +139,38 @@ export class CandyClient {
             return [result, false];
         }
 
-        const isOnline = candyDevice.current_status_parameters.WiFiStatus === "1"
+        const isOnline = candyDevice.current_status_parameters.WiFiStatus === CandyFunctionStatus.On
             && new Date(candyDevice.current_status_update) > this.oneMinuteBefore;
 
         const alisaDeviceState: DeviceState = {
             id: alisaDevice.id,
             capabilities: [
                 {
-                    type: "devices.capabilities.mode",
+                    type: CapabilitiesTypes.Mode,
                     state: {
-                        instance: "program",
+                        instance: CapabilitiesInstances.Program,
                         value: isOnline
                             ? programCodeToMode(candyDevice.current_status_parameters.PrCode, candyDevice.current_status_parameters.DryT)
-                            : "auto"
+                            : CapabilityModes.Auto
                     }
                 },
                 {
-                    type: "devices.capabilities.toggle",
+                    type: CapabilitiesTypes.Toggle,
                     state: {
-                        instance: "pause",
-                        value: candyDevice.current_status_parameters.MachMd === "3"
+                        instance: CapabilitiesInstances.Pause,
+                        value: candyDevice.current_status_parameters.MachMd === MachineMode.Pause
                     }
                 },
                 {
-                    type: "devices.capabilities.on_off",
+                    type: CapabilitiesTypes.OnOff,
                     state: {
-                        instance: "on",
+                        instance: CapabilitiesInstances.On,
                         value: isOnline
                     }
                 }
             ]
         };
-        
+
         const differs = await this.enrichValues(alisaDeviceState);
         result.payload.devices.push(alisaDeviceState);
 
@@ -190,7 +190,7 @@ export class CandyClient {
                 differs = true;
                 capability.state.value = (typeof capability.state.value === "boolean")
                     ? entity.value === "true"
-                    : entity.value as AlisaModes;
+                    : entity.value as CapabilityModes;
             }
         }
 
@@ -198,10 +198,10 @@ export class CandyClient {
     }
 
     async sendState(alisaReq: SendStateReqAlisa): Promise<SendStateResAlisa> {
-        const [actualState, stateDiffers] = await this.getState(alisaReq);
-        const actualCapabilities = actualState.payload.devices[0].capabilities;
-        const alisaDevice = alisaReq.devices[0];
-        const capability = alisaDevice.capabilities[0];
+        const [actualState, stateDiffers] = await this.getStateInternal(alisaReq);
+        const actualCapabilities = actualState.payload.devices[0]!.capabilities;
+        const alisaDevice = alisaReq.devices[0]!;
+        const capability = alisaDevice.capabilities[0]!;
 
         let command: StartCommandReqCandyBody | PauseResumeCommandReqCandyBody | StopCommandReqCandyBody | undefined;
 
@@ -210,12 +210,12 @@ export class CandyClient {
             return this.composeSentStateResult(alisaDevice, true);
 
         // pause or continue
-        if (capability.type === "devices.capabilities.toggle" && capability.state.instance === "pause") {
+        if (capability.type === CapabilitiesTypes.Toggle && capability.state.instance === CapabilitiesInstances.Pause) {
 
             const error = this.errorIfModeIsAuto(actualCapabilities, alisaDevice);
             if (error) return error;
-                
-            const isPause = capability.state.value ? "1" : "0";
+
+            const isPause = capability.state.value ? CandyFunctionStatus.On : CandyFunctionStatus.Off;
             command = {
                 encrypted: "0",
                 Pa: isPause
@@ -223,32 +223,32 @@ export class CandyClient {
 
             this.ydbClient.addOperation(capability.type, capability.state.instance, capability.state.value.toString());
 
-        // set program
-        } else if (capability.type === "devices.capabilities.mode" && capability.state.instance === "program") {
+            // set program
+        } else if (capability.type === CapabilitiesTypes.Mode && capability.state.instance === CapabilitiesInstances.Program) {
             const error = this.errorIfModeIsAuto(actualCapabilities, alisaDevice, false);
             if (error) return error;
 
-            const mode = capability.state.value as AlisaModes;
+            const mode = capability.state.value as CapabilityModes;
             command = modeToComand(mode);
             this.ydbClient.addOperation(capability.type, capability.state.instance, mode);
 
-        // stop
-        } else if (capability.type === "devices.capabilities.on_off" && capability.state.instance === "on" && !capability.state.value) {
-            
+            // stop
+        } else if (capability.type === CapabilitiesTypes.OnOff && capability.state.instance === CapabilitiesInstances.On && !capability.state.value) {
+
             const error = this.errorIfModeIsAuto(actualCapabilities, alisaDevice);
             if (error) return error;
 
             command = {
                 Write: "1",
-                StSt: "0"
+                StSt: CandyFunctionStatus.Off
             } as StopCommandReqCandyBody;
             this.ydbClient.addOperation(capability.type, capability.state.instance, "false");
 
-        // start and others
+            // start and others
         } else {
             return this.composeSentStateResult(alisaDevice, true);
         }
-        
+
         if (!command)
             return this.composeSentStateResult(alisaDevice, false);
 
@@ -256,10 +256,10 @@ export class CandyClient {
             appliance_id: alisaDevice.id,
             body: Object.entries(command).map(e => e[0] + "=" + e[1]).join("&"),
         };
-        
+
         try {
-            const response = await fetch(this.host + this.commandUrl,
-                { method: "POST", headers: this.headersForCommand, body: JSON.stringify(commandReqCandy) });
+            const response = await fetch(CommandUrl,
+                { method: HttpMethod.Post, headers: this.headersForCommand, body: JSON.stringify(commandReqCandy) });
             await response.json();
         } catch {
             return this.composeSentStateResult(alisaDevice, true);
@@ -268,34 +268,11 @@ export class CandyClient {
         return this.composeSentStateResult(alisaDevice, false);
     }
 
-    private composeSentStateResult(alisaDevice: DeviceFromSendState, hasError: boolean): SendStateResAlisa {
-        const capability = alisaDevice.capabilities[0];
-        const result: SendStateResAlisa = {
-            request_id: this.requestId,
-            payload: {
-                devices: [{
-                    id: alisaDevice.id,
-                    capabilities: [
-                        {
-                            type: capability.type,
-                            state: {
-                                instance: capability.state.instance,
-                                action_result: {
-                                    status: hasError ? "ERROR" : "DONE"
-                                }
-                            }
-                        }
-                    ]
-                }]
-            }
-        };
-
-        return result;
-    }
-
     private errorIfModeIsAuto(actualCapabilities: Capability[] | undefined, alisaDevice: DeviceFromSendState, isAuto = true): SendStateResAlisa | undefined {
-        if (actualCapabilities?.find(e => e.type === "devices.capabilities.mode"
-            && (isAuto && e.state.value === 'auto' || !isAuto && e.state.value !== 'auto')))
-                return this.composeSentStateResult(alisaDevice, true)
+        if (actualCapabilities?.find(e => e.type === CapabilitiesTypes.Mode
+            && (isAuto && e.state.value === CapabilityModes.Auto || !isAuto && e.state.value !== CapabilityModes.Auto)))
+            return this.composeSentStateResult(alisaDevice, true);
+
+        return undefined;
     }
 }

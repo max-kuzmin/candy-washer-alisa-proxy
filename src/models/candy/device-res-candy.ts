@@ -1,10 +1,12 @@
+import { MachineMode, CandyFunctionStatus } from '../consts';
+
 export interface CurrentStatusParameters {
     /** Признак подключения машины к управлению через приложение */
-    WiFiStatus: "0" | "1";
+    WiFiStatus: CandyFunctionStatus;
     /** Ошибка */
     Err: string;
-    /** Состояние 1 - остановлена, 2 - в процессе, 3 - пауза, 5 - отложенный запуск | 7 - программа завершена */
-    MachMd: "1" | "2" | "3" | "5";
+    /** Состояние */
+    MachMd: MachineMode;
     /** Программа */
     PrNm: string;
     /** Состояние программы */

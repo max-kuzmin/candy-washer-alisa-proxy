@@ -1,3 +1,5 @@
+import { CandyFunctionStatus } from '../consts';
+
 export interface CommandReqCandy {
     appliance_id: string;
     /** Содержит строку формата ключ=значение&ключ=значение */
@@ -56,5 +58,5 @@ export interface StopCommandReqCandyBody {
     /** Признак записи, всегда 1 */
     Write: "1";
     /** Старт = 1, стоп = 0 */
-    StSt: "0";
+    StSt: CandyFunctionStatus;
 }
