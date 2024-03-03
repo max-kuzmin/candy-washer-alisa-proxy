@@ -66,7 +66,8 @@ export async function handler(event: HandlerInput): Promise<HandlerResult> {
                 Location: resultUrl
             }
         };
-    } catch {
+    } catch (e) {
+        console.log(e);
         return loginPage(event, true);
     }
 };
