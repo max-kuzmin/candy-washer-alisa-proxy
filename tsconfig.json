@@ -1,6 +1,6 @@
 {
     "files": ["src/candy-integration.ts", "src/candy-token-proxy.ts", "src/candy-auth-proxy.ts"],
-    "include": ["src/**/*", "./package.json"],
+    "include": ["src/**/*", "./package.json", "./authorized_key.json"],
     "exclude": ["jsons"],
     "compilerOptions": {
       "target": "ESNext",

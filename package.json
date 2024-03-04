@@ -6,9 +6,10 @@
   },
   "dependencies": {
     "mk-alisa-proxy-base": "^1.0.5",
+    "node-fetch": "^2.6.11",
     "ydb-sdk": "^4.6.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.6"
+    "@types/node-fetch": "^2.6.11"
   }
 }

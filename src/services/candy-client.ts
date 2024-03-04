@@ -4,10 +4,11 @@ import { StartCommandReqCandyBody, PauseResumeCommandReqCandyBody, StopCommandRe
 import { DeviceResCandy } from '../models/candy/device-res-candy';
 import { YdbClient } from './ydb-client';
 import { AppliencesTypes, MachineMode, CandyFunctionStatus, GetDevicesUrl, CommandUrl } from '../models/consts';
+import fetch, { HeaderInit } from "node-fetch";
 
 export class CandyClient extends SmartHomeClient {
-    private readonly headers: HeadersInit;
-    private readonly headersForCommand: HeadersInit;
+    private readonly headers: HeaderInit;
+    private readonly headersForCommand: HeaderInit;
     private readonly ydbClient = new YdbClient();
     private readonly oneMinuteBefore: Date;
 
